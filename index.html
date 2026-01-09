@@ -1,93 +1,58 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Media Converter</title>
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  tg.expand();
 
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  function convert() {
+    const url = document.getElementById('url').value.trim();
+    const format = document.getElementById('format').value;
+    const result = document.getElementById('result');
 
-  <style>
-    body {
-      margin: 0;
-      background: #020617;
-      color: #e5e7eb;
-      font-family: system-ui;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+    if (!url) {
+      result.style.display = 'block';
+      result.innerHTML = '<span class="err">❌ Iltimos, link kiriting</span>';
+      return;
     }
 
-    .box {
-      width: 100%;
-      max-width: 420px;
-      padding: 20px;
-      background: #0f172a;
-      border-radius: 16px;
+    const platforms = ['youtube', 'youtu.be', 'instagram', 'tiktok'];
+    const valid = platforms.some(p => url.includes(p));
+
+    if (!valid) {
+      result.style.display = 'block';
+      result.innerHTML = '<span class="err">❌ Platforma qo‘llab-quvvatlanmaydi</span>';
+      return;
     }
 
-    input, select, button {
-      width: 100%;
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      font-size: 16px;
-    }
+    const user = tg.initDataUnsafe?.user;
 
-    button {
-      background: #22c55e;
-      font-weight: bold;
-      cursor: pointer;
-    }
+    const payload = {
+      url: url,
+      format: format,
+      user_id: user?.id,
+      username: user?.username
+    };
 
-    .msg {
-      margin-top: 12px;
-      font-size: 14px;
-    }
-  </style>
-</head>
+    // 1️⃣ Botga yuboramiz
+    tg.sendData(JSON.stringify(payload));
 
-<body>
-  <div class="box">
-    <h2>🎬 Media Converter</h2>
+    // 2️⃣ Yuklanmoqda chiqadi
+    result.style.display = 'block';
+    result.innerHTML = `
+      ⏳ <b>Yuklanmoqda...</b><br><br>
+      Bot faylni tayyorlayapti
+    `;
 
-    <input id="url" placeholder="https://youtube.com/..." />
-    <select id="format">
-      <option value="mp4">MP4 Video</option>
-      <option value="mp3">MP3 Audio</option>
-    </select>
+    // 3️⃣ 1.5 soniyadan keyin "Ko‘rish" tugmasi chiqadi
+    setTimeout(() => {
+      result.innerHTML = `
+        <span class="ok">✅ Fayl tayyor</span><br><br>
+        <button onclick="openInBot()">👀 Ko‘rish</button>
+      `;
+    }, 1500);
+  }
 
-    <button onclick="send()">Convert</button>
-
-    <div class="msg" id="msg"></div>
-  </div>
-
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
-
-    function send() {
-      const url = document.getElementById("url").value.trim();
-      const format = document.getElementById("format").value;
-      const msg = document.getElementById("msg");
-
-      if (!url) {
-        msg.innerText = "❌ Link kiriting";
-        return;
-      }
-
-      msg.innerText = "⏳ Iltimos kuting, botga yuborildi...";
-
-      tg.sendData(JSON.stringify({
-        url: url,
-        format: format
-      }));
-
-      setTimeout(() => tg.close(), 1200);
-    }
-  </script>
-</body>
-</html>
+  function openInBot() {
+    // 4️⃣ Mini App yopiladi → bot chatga qaytadi
+    tg.close();
+  }
+</script>
