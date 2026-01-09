@@ -1,58 +1,135 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Media Loader</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+body{
+  margin:0;
+  background:#020617;
+  font-family:system-ui;
+  color:#e5e7eb;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+}
+.app{
+  width:100%;
+  max-width:420px;
+  background:#0f172a;
+  border-radius:20px;
+  padding:24px;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+}
+h1{text-align:center;margin-bottom:6px;}
+.sub{text-align:center;color:#9ca3af;margin-bottom:20px;}
+input,select,button{
+  width:100%;
+  padding:14px;
+  border-radius:12px;
+  border:none;
+  margin-bottom:14px;
+  font-size:15px;
+}
+input,select{
+  background:#020617;
+  color:#fff;
+  border:1px solid #1f2937;
+}
+button{
+  background:#22c55e;
+  font-weight:700;
+  cursor:pointer;
+}
+button.secondary{
+  background:#2563eb;
+  display:none;
+}
+.result{
+  display:none;
+  background:#020617;
+  border:1px dashed #1f2937;
+  padding:14px;
+  border-radius:12px;
+  font-size:14px;
+}
+.loading{
+  animation:pulse 1.2s infinite;
+}
+@keyframes pulse{
+  0%{opacity:.4}
+  50%{opacity:1}
+  100%{opacity:.4}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+<h1>🎬 Media Loader</h1>
+<div class="sub">YouTube • Instagram • TikTok</div>
+
+<input id="url" placeholder="Video link kiriting">
+<select id="format">
+  <option value="mp4">MP4 (Video)</option>
+  <option value="mp3">MP3 (Audio)</option>
+</select>
+
+<button id="sendBtn">Yuklash</button>
+<button id="openBot" class="secondary">📂 Ko‘rish</button>
+
+<div class="result" id="result"></div>
+</div>
+
 <script>
-  const tg = window.Telegram.WebApp;
-  tg.ready();
-  tg.expand();
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
 
-  function convert() {
-    const url = document.getElementById('url').value.trim();
-    const format = document.getElementById('format').value;
-    const result = document.getElementById('result');
+const sendBtn = document.getElementById("sendBtn");
+const openBot = document.getElementById("openBot");
+const result = document.getElementById("result");
 
-    if (!url) {
-      result.style.display = 'block';
-      result.innerHTML = '<span class="err">❌ Iltimos, link kiriting</span>';
-      return;
-    }
+sendBtn.onclick = () => {
+  const url = document.getElementById("url").value.trim();
+  const format = document.getElementById("format").value;
 
-    const platforms = ['youtube', 'youtu.be', 'instagram', 'tiktok'];
-    const valid = platforms.some(p => url.includes(p));
-
-    if (!valid) {
-      result.style.display = 'block';
-      result.innerHTML = '<span class="err">❌ Platforma qo‘llab-quvvatlanmaydi</span>';
-      return;
-    }
-
-    const user = tg.initDataUnsafe?.user;
-
-    const payload = {
-      url: url,
-      format: format,
-      user_id: user?.id,
-      username: user?.username
-    };
-
-    // 1️⃣ Botga yuboramiz
-    tg.sendData(JSON.stringify(payload));
-
-    // 2️⃣ Yuklanmoqda chiqadi
-    result.style.display = 'block';
-    result.innerHTML = `
-      ⏳ <b>Yuklanmoqda...</b><br><br>
-      Bot faylni tayyorlayapti
-    `;
-
-    // 3️⃣ 1.5 soniyadan keyin "Ko‘rish" tugmasi chiqadi
-    setTimeout(() => {
-      result.innerHTML = `
-        <span class="ok">✅ Fayl tayyor</span><br><br>
-        <button onclick="openInBot()">👀 Ko‘rish</button>
-      `;
-    }, 1500);
+  if(!url){
+    show("❌ Link kiriting");
+    return;
   }
 
-  function openInBot() {
-    // 4️⃣ Mini App yopiladi → bot chatga qaytadi
-    tg.close();
-  }
+  show("⏳ Iltimos kuting, yuklanmoqda...", true);
+
+  const payload = {
+    url,
+    format,
+    user_id: tg.initDataUnsafe.user?.id
+  };
+
+  tg.sendData(JSON.stringify(payload));
+
+  setTimeout(() => {
+    show("✅ Tayyor! Fayl botda", false);
+    openBot.style.display="block";
+  }, 1200);
+};
+
+openBot.onclick = () => {
+  tg.close(); // miniapp yopiladi → bot chat ochiq qoladi
+};
+
+function show(text, loading=false){
+  result.style.display="block";
+  result.innerHTML = loading
+    ? `<span class="loading">${text}</span>`
+    : text;
+}
 </script>
+</body>
+</html>
