@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Universal Media Converter</title>
 
+  <!-- Telegram Mini App API -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
   <style>
     :root {
       --bg: #020617;
@@ -138,11 +141,15 @@
     <div class="result" id="result"></div>
 
     <div class="footer">
-      Static demo • Server / Telegram bot bilan ulanadi
+      Telegram Mini App • Bot bilan ulangan
     </div>
   </div>
 
   <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
     function convert() {
       const url = document.getElementById('url').value.trim();
       const format = document.getElementById('format').value;
@@ -163,14 +170,26 @@
         return;
       }
 
+      const user = tg.initDataUnsafe?.user;
+
+      // Botga yuboriladigan data
+      const payload = {
+        url: url,
+        format: format,
+        user_id: user?.id,
+        username: user?.username
+      };
+
+      // Botga jo‘natish
+      tg.sendData(JSON.stringify(payload));
+
       result.style.display = 'block';
       result.innerHTML = `
-        <span class="ok">✅ So‘rov qabul qilindi</span><br><br>
-        <b>Link:</b> ${url}<br>
-        <b>Format:</b> ${format.toUpperCase()}<br><br>
-        ⏳ Yuklash backend orqali amalga oshiriladi
+        <span class="ok">✅ So‘rov botga yuborildi</span><br><br>
+        <b>Format:</b> ${format.toUpperCase()}<br>
+        <b>User:</b> ${user?.username || 'Nomaʼlum'}
       `;
     }
   </script>
 </body>
-        </html>
+</html>
